@@ -3,7 +3,7 @@
 <package format="3">
   <name>umrt_ros_poe_cam</name>
   <version>@version_input@</version> <!-- Version number parsed from version file, replaced here by CMake -->
-  <description>UMRT PoE Camera Package</description>
+  <description>UMRT PoE Camera ROS Package</description>
   <maintainer email="***** email *****">***** First Last *****</maintainer>
   <license>MPL-2.0</license>
 

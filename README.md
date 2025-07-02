@@ -1,5 +1,7 @@
 # UMRT ROS PoE Camera
-ROS project repository for the ROS PoE Camera
+ROS project repository for the ROS PoE Camera.
+
+TO BE UPDATED 
 
 New projects should be **forked** from this repo (not using this as a template, as that prevents template changes from
 trickling down). Each new project must:
@@ -16,10 +18,17 @@ trickling down). Each new project must:
 8. Write something in mainpage.dox
 9. Replace example files with real code, add source files to CMake targets, document it with Doxygen, and proceed
 
----
-# Project Name
+TO DO:
+Check H265
+Update Doxyfile
+Update CMakeLists.txt to match the umrt-template-ros
+Removal of unecesary src files 
+Separating mobule_publisher.cpp to different cpp and hpp files
 
-This library/executable/project implements XYZ functionality for the University of Manitoba Robotics Team's 
+---
+# UMRT ROS PoE Camera
+
+This library/executable/project implements PoE Camera functionality for the University of Manitoba Robotics Team's 
 rover/robotic arm.
 
 [See the documentation](https://umroboticsteam.github.io/umrt-ros-poe-cam/)

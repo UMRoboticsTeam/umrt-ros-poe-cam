@@ -10,7 +10,7 @@ import launch_ros.descriptions
 from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
-    umrt_ros_poe_cam_path = get_package_share_directory('umrt-ros-poe-cam')
+    umrt_ros_poe_cam_path = get_package_share_directory('umrt_ros_poe_cam')
     default_rviz = os.path.join(umrt_ros_poe_cam_path, 'rviz', 'pointCloud.rviz')
     default_resources_path = os.path.join(umrt_ros_poe_cam_path, 'resources')
 
