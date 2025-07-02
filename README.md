@@ -1,5 +1,5 @@
-# UMRT ROS Template
-ROS project repository template for the University of Manitoba Robotics Team.
+# UMRT ROS PoE Camera
+ROS project repository for the ROS PoE Camera
 
 New projects should be **forked** from this repo (not using this as a template, as that prevents template changes from
 trickling down). Each new project must:
@@ -22,4 +22,4 @@ trickling down). Each new project must:
 This library/executable/project implements XYZ functionality for the University of Manitoba Robotics Team's 
 rover/robotic arm.
 
-[See the documentation](https://umroboticsteam.github.io/********** project-name **********/)
+[See the documentation](https://umroboticsteam.github.io/umrt-ros-poe-cam/)

@@ -10,9 +10,9 @@ import launch_ros.descriptions
 from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
-    depthai_examples_path = get_package_share_directory('depthai_examples')
-    default_rviz = os.path.join(depthai_examples_path, 'rviz', 'pointCloud.rviz')
-    default_resources_path = os.path.join(depthai_examples_path, 'resources')
+    umrt_ros_poe_cam_path = get_package_share_directory('umrt-ros-poe-cam')
+    default_rviz = os.path.join(umrt_ros_poe_cam_path, 'rviz', 'pointCloud.rviz')
+    default_resources_path = os.path.join(umrt_ros_poe_cam_path, 'resources')
 
     urdf_launch_dir = os.path.join(get_package_share_directory('depthai_descriptions'), 'launch')
 
@@ -27,7 +27,7 @@ def generate_launch_description():
     cam_pitch        = LaunchConfiguration('cam_pitch',     default = '0.0')
     cam_yaw          = LaunchConfiguration('cam_yaw',       default = '0.0')
 
-    camera_param_uri   = LaunchConfiguration('camera_param_uri', default = 'package://depthai_examples/params/camera')
+    camera_param_uri   = LaunchConfiguration('camera_param_uri', default = 'package://umrt-ros-poe-cam/params/camera')
     sync_nn            = LaunchConfiguration('sync_nn', default = True)
     nnName            = LaunchConfiguration('nnName', default = "x")
     resourceBaseFolder = LaunchConfiguration('resourceBaseFolder', default = default_resources_path)
@@ -103,7 +103,7 @@ def generate_launch_description():
         description='Path to the resources folder which contains the default blobs for the network')
 
     mobilenet_node = launch_ros.actions.Node(
-        package='depthai_examples', executable='mobilenet_node',
+        package='umrt_ros_poe_cam', executable='mobilenet_node',
         output='screen',
         parameters=[{'tf_prefix': 'oak'},
                     {'camera_param_uri': camera_param_uri},
