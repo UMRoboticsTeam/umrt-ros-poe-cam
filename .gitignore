@@ -3,3 +3,4 @@
 /output-doxygen/
 # We ignore package.xml because it is generated from package.in.xml
 package.xml
+/resources/mobilenet-ssd_openvino_2021.2_6shave.blob
