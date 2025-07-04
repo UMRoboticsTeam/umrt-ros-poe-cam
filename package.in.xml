@@ -4,7 +4,7 @@
   <name>umrt-ros-poe-cam</name>
   <version>@version_input@</version> <!-- Version number parsed from version file, replaced here by CMake -->
   <description>UMRT PoE Camera ROS Package</description>
-  <maintainer email="edcel@todo">edcel</maintainer>
+  <maintainer email="158010272+edcela@users.noreply.github.com">edcel</maintainer>
   <license>MPL-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

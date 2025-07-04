@@ -83,7 +83,7 @@ private:
         
         //  Ensure it's not a Null frame
         if (frame == nullptr) {
-            RCLCP_WARN(rclcpp::get_logger("logger"), "Null frame! Checking next...");
+            RCLCPP_WARN(rclcpp::get_logger("logger"), "Null frame! Checking next...");
             return;
         }
 

@@ -3,9 +3,11 @@ project(umrt-ros-poe-cam VERSION 2.9.0 LANGUAGES CXX C)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-add_compile_options(-g)
+
+# TO-DO: Test without the following, will build but unsure if it affects anything
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# add_compile_options(-g)
 
 ## is used, also find other catkin packages
 if(POLICY CMP0057)
@@ -59,43 +61,21 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
         find_package(${Dependency} REQUIRED)
 endforeach()
 
-# find_package(camera_info_manager REQUIRED)
-# find_package(cv_bridge REQUIRED)
-# find_package(depthai CONFIG REQUIRED)
-# find_package(depthai_ros_msgs REQUIRED)
-# find_package(depthai_bridge REQUIRED)
-# find_package(rclcpp REQUIRED)
-# find_package(sensor_msgs REQUIRED)
-# find_package(stereo_msgs REQUIRED)
-# find_package(std_msgs REQUIRED)
-# find_package(vision_msgs REQUIRED)
-# find_package(foxglove_msgs REQUIRED)
-
-# set(dependencies
-#         camera_info_manager
-#         cv_bridge
-#         depthai_ros_msgs
-#         depthai_bridge
-#         rclcpp
-#         sensor_msgs
-#         stereo_msgs
-#         std_msgs
-#         vision_msgs
-#         foxglove_msgs
-# )
-
 include_directories(
         include
         ${ament_INCLUDE_DIRS}
 )
 
-# 
-configure_file( Fill version number into package.xml
+# Parse version number from the file
+file(READ "version" version_input)
+string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" _ ${version_input})
+
+# Fill version number into package.xml
+configure_file( 
         package.in.xml
         ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
         @ONLY
 )
-
 
 
 # For Nodes
