@@ -110,7 +110,7 @@ macro(dai_add_node_ros2 node_name node_src)
           opencv_highgui)
 
   ament_target_dependencies("${node_name}"
-          ${dependencies})
+          ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 endmacro()
 
