@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>umrt_ros_poe_cam</name>
+  <name>umrt-ros-poe-cam</name>
   <version>@version_input@</version> <!-- Version number parsed from version file, replaced here by CMake -->
   <description>UMRT PoE Camera ROS Package</description>
-  <maintainer email="***** email *****">***** First Last *****</maintainer>
+  <maintainer email="edcel@todo">edcel</maintainer>
   <license>MPL-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

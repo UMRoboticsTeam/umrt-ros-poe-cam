@@ -1,8 +1,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include "rclcpp/executors.hpp"
-#include "rclcpp/node.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include <foxglove_msgs/msg/compressed_video.hpp>
 #include "depthai/depthai.hpp"
 
@@ -13,34 +12,34 @@ dai::Pipeline createPipeline() {
     dai::Pipeline pipeline;
 
     //  Create the Camera Input, the VideoEncoder, and then the xLinkOut
-    auto colorCam = pipeline.create<dai::node::ColorCamera>();
-    auto videoEnc = pipeline.create<dai::node::VideoEncoder>();
-    auto xLinkOut = pipeline.create<dai::node::XLinkOut>();
+    auto color_cam = pipeline.create<dai::node::ColorCamera>();
+    auto video_enc = pipeline.create<dai::node::VideoEncoder>();
+    auto xlink_out = pipeline.create<dai::node::XLinkOut>();
 
-    xLinkOut->setStreamName("encoded_video");
+    xlink_out->setStreamName("encoded_video");
 
-    colorCam->setFps(30);
-    colorCam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_720_P);
-    colorCam->setBoardSocket(dai::CameraBoardSocket::CAM_A);
-    colorCam->setInterleaved(true);
-    colorCam->setColorOrder(dai::ColorCameraProperties::ColorOrder::BGR);
+    color_cam->setFps(30);
+    color_cam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_720_P);
+    color_cam->setBoardSocket(dai::CameraBoardSocket::CAM_A);
+    color_cam->setInterleaved(true);
+    color_cam->setColorOrder(dai::ColorCameraProperties::ColorOrder::BGR);
 
     // Setting to 26 FPS will trigger error so set to 25, none the less try 30 FPS
-    videoEnc->setDefaultProfilePreset(colorCam->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
-    //videoEnc->setQuality(60); only for MJPEG
-    videoEnc->setKeyframeFrequency(30);  // Force an IDR frame every 30 frames (~1/sec @ 30fps)
-    videoEnc->setFrameRate(30);
+    video_enc->setDefaultProfilePreset(color_cam->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+    //video_enc->setQuality(60); only for MJPEG
+    video_enc->setKeyframeFrequency(30);  // Force an IDR frame every 30 frames (~1/sec @ 30fps)
+    video_enc->setFrameRate(30);
 
-    // Link the colorCam Video output to the VideoEncoder Input
-    colorCam->video.link(videoEnc->input);
+    // Link the color_cam Video output to the VideoEncoder Input
+    color_cam->video.link(video_enc->input);
     // Link the video bitstream output to the xLinkOut Input 
     // This one i have to consider since bitstream and out is mutually exclusive
-    videoEnc->out.link(xLinkOut->input);
+    video_enc->out.link(xlink_out->input);
 
     return pipeline;
 }
 
-/*
+/**
  *  MobileNetPublisherNode Class - Create a node that publishes to a topic called "/encoded_video"
  */
 class MobileNetPublisherNode : public rclcpp::Node {
@@ -57,32 +56,38 @@ public:
         device = std::make_shared<dai::Device>(pipeline);
         RCLCPP_INFO(this->get_logger(), "Pipeline running: %s", device->isPipelineRunning() ? "yes" : "no");
 
-        encodedQueue = device->getOutputQueue("encoded_video", 30, false);
+        encoded_queue = device->getOutputQueue("encoded_video", 30, false);
         
         //  Timer
         timer = this->create_wall_timer(
-                std::chrono::milliseconds(33),
-                std::bind(&MobileNetPublisherNode::publishEncodedImage, this));
+            std::chrono::milliseconds(33),
+            [this]() {
+            publishEncodedImage(); 
+            });
     }
 
 private: 
-    //  PublishEncodedImage Function - This is a ROS2 function for the MobileNetPublisher Node which will 
-    //  grab a frame from the EncodedFrame from the VideoEncoder and format it to the CompressedVideo message 
-    //  from Foxglove and then publish it to the topic
+
+    /**
+     *  PublishEncodedImage Function - This is a ROS2 function for the MobileNetPublisher Node which will 
+     *  grab a frame from the EncodedFrame from the VideoEncoder and format it to the CompressedVideo message 
+     *  from Foxglove and then publish it to the topic
+     */
     void publishEncodedImage() {
         // Get Frame
         // auto frame = encodedQueue->get<dai::ImgFrame>(); // this was bitstream which is mutually exclusive to out 
-        auto frame = encodedQueue->get<dai::EncodedFrame>();
+        auto frame = encoded_queue->get<dai::EncodedFrame>();
 
-        // Setup 
-        auto msg = std::make_shared<foxglove_msgs::msg::CompressedVideo>();
-
+        // Initialize CompressedVideo Message 
+        auto msg = std::make_unique<foxglove_msgs::msg::CompressedVideo>();
+        
+        //  Ensure it's not a Null frame
         if (frame == nullptr) {
-            std::cout << "Null Frame! Checking next..." << std::endl;
+            RCLCP_WARN(rclcpp::get_logger("logger"), "Null frame! Checking next...");
             return;
         }
 
-        //  
+        //  Setup the CompressedVideo Message (timestamp, frame_id, format, and data)
         msg->timestamp = rclcpp::Time(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
             frame->getTimestamp().time_since_epoch()).count()
@@ -91,15 +96,15 @@ private:
         msg->format = "h264";
         msg->data = frame->getData();
 
-        //  Publish the 
-        encoded_pub_->publish(*msg);
+        //  Publish the CompressedVideo Message to Topic /encoded_video 
+        encoded_pub_->publish(std::move(msg));
     }
 
     // Variables 
     rclcpp::Publisher<foxglove_msgs::msg::CompressedVideo>::SharedPtr encoded_pub_;
     rclcpp::TimerBase::SharedPtr timer;
     std::shared_ptr<dai::Device> device;
-    std::shared_ptr<dai::DataOutputQueue> encodedQueue;
+    std::shared_ptr<dai::DataOutputQueue> encoded_queue;
     dai::Pipeline pipeline;
 
 };
@@ -109,6 +114,5 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<MobileNetPublisherNode>());
     rclcpp::shutdown();
-
     return 0;
 }

@@ -10,7 +10,7 @@ import launch_ros.descriptions
 from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
-    umrt_ros_poe_cam_path = get_package_share_directory('umrt_ros_poe_cam')
+    umrt_ros_poe_cam_path = get_package_share_directory('umrt-ros-poe-cam')
     default_rviz = os.path.join(umrt_ros_poe_cam_path, 'rviz', 'pointCloud.rviz')
     default_resources_path = os.path.join(umrt_ros_poe_cam_path, 'resources')
 
@@ -103,7 +103,7 @@ def generate_launch_description():
         description='Path to the resources folder which contains the default blobs for the network')
 
     mobilenet_node = launch_ros.actions.Node(
-        package='umrt_ros_poe_cam', executable='mobilenet_node',
+        package='umrt-ros-poe-cam', executable='mobilenet_node',
         output='screen',
         parameters=[{'tf_prefix': 'oak'},
                     {'camera_param_uri': camera_param_uri},
