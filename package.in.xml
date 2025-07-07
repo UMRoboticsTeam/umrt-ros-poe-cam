@@ -29,6 +29,7 @@
   <depend>std_msgs</depend>
   <depend>stereo_msgs</depend>
   <depend>vision_msgs</depend>
+  <depend>foxglove_msgs</depend>
 
   <!-- Execution dependencies -->
   <exec_depend>robot_state_publisher</exec_depend>
