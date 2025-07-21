@@ -54,6 +54,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         stereo_msgs
         std_msgs
         vision_msgs
+        geometry_msgs
+        visualization_msgs
         )
 
 find_package(ament_cmake REQUIRED)
@@ -87,6 +89,7 @@ macro(dai_add_node_ros2 node_name node_src)
   target_link_libraries("${node_name}"
           depthai::core
           opencv_imgproc
+          opencv_aruco
           opencv_highgui)
 
   ament_target_dependencies("${node_name}"
@@ -98,6 +101,7 @@ endmacro()
 dai_add_node_ros2(mobilenet_node src/mobilenet_publisher.cpp)
 
 target_compile_definitions(mobilenet_node PRIVATE BLOB_NAME="${mobilenet_blob_name}")
+
 
 # Install parameters, resources, and launch files
 install(DIRECTORY params DESTINATION share/${PROJECT_NAME})
