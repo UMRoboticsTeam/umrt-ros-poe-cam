@@ -19,7 +19,7 @@ dai::Pipeline createPipeline() {
     xlink_out->setStreamName("encoded_video");
 
     color_cam->setFps(30);
-    color_cam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_720_P);
+    color_cam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
     color_cam->setBoardSocket(dai::CameraBoardSocket::CAM_A);
     color_cam->setInterleaved(true);
     color_cam->setColorOrder(dai::ColorCameraProperties::ColorOrder::BGR);
