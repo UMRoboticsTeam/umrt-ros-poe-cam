@@ -30,7 +30,6 @@
   <depend>stereo_msgs</depend>
   <depend>vision_msgs</depend>
   <depend>foxglove_msgs</depend>
-  <depend>image_transport</depend>
   <depend>ffmpeg_image_transport</depend>
 
   <!-- Execution dependencies -->
