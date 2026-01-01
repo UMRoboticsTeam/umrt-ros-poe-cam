@@ -56,6 +56,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         vision_msgs
         image_transport
         ffmpeg_image_transport
+        ffmpeg_image_transport_msgs
         )
 
 find_package(ament_cmake REQUIRED)

@@ -3,6 +3,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include <foxglove_msgs/msg/compressed_video.hpp>
+#include <ffmpeg_image_transport_msgs/msg/ffmpeg_packet.hpp>
 #include "depthai/depthai.hpp"
 
 // DepthAI Pipeline
@@ -45,7 +46,7 @@ dai::Pipeline createPipeline() {
 class MobileNetPublisherNode : public rclcpp::Node {
 public:
     MobileNetPublisherNode() : Node("mobilenet_publisher_node") {
-        encoded_pub_ = this->create_publisher<foxglove_msgs::msg::CompressedVideo>(
+        encoded_pub_ = this->create_publisher<ffmpeg_image_transport_msgs::msg::FFMPEGPacket>(
                 "encoded_video",
                 // Custom QoS for Best Effort
                 rclcpp::QoS(rclcpp::KeepLast(1))
@@ -70,16 +71,16 @@ private:
 
     /**
      *  PublishEncodedImage Function - This is a ROS2 function for the MobileNetPublisher Node which will 
-     *  grab a frame from the EncodedFrame from the VideoEncoder and format it to the CompressedVideo message 
-     *  from Foxglove and then publish it to the topic
+     *  grab a frame from the EncodedFrame from the VideoEncoder and format it to the FFMPEGPacket message 
+     *  then publish it to the topic.
      */
     void publishEncodedImage() {
         // Get Frame
         // auto frame = encodedQueue->get<dai::ImgFrame>(); // this was bitstream which is mutually exclusive to out 
         auto frame = encoded_queue->get<dai::EncodedFrame>();
 
-        // Initialize CompressedVideo Message 
-        auto msg = std::make_unique<foxglove_msgs::msg::CompressedVideo>();
+        // Initialize FFMPEGPacket Message 
+        auto msg = std::make_unique<ffmpeg_image_transport_msgs::msg::FFMPEGPacket>();
         
         //  Ensure it's not a Null frame
         if (frame == nullptr) {
@@ -87,21 +88,44 @@ private:
             return;
         }
 
-        //  Setup the CompressedVideo Message (timestamp, frame_id, format, and data)
+        //  Setup the FFMPEG Packet Message
+        // 1. Header
+        msg->header.stamp = rclcpp::Time(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+            frame->getTimestamp().time_since_epoch()).count()
+        );
+        msg->header.frame_id = "oakd_camera";
+
+        /*
         msg->timestamp = rclcpp::Time(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
             frame->getTimestamp().time_since_epoch()).count()
-        );  
-        msg->frame_id = "oakd_camera";
-        msg->format = "h264";
+        );
+        */  
+
+        // 2. Metadata (HxW are from params)
+        msg->encoding = "h264";
+        msg->width = 1280;
+        msg->height = 720; 
+
+        // 3. Timing
+        msg->pts = frame->getSequenceNum();
+
+        // 4. Flags (Keyframes and IDR frames)
+        // Important for H264 
+        // 0 = P-Frame
+        // 1 = I-Frame/Keyframe
+        msg->flags = (frame->getFrameType() == dai::EncodedFrame::FrameType::I) ? 1 : 0;
+
+        // 5. The data
         msg->data = frame->getData();
 
-        //  Publish the CompressedVideo Message to Topic /encoded_video 
+        //  Publish the FFMPEGPacket Message to Topic /encoded_video 
         encoded_pub_->publish(std::move(msg));
     }
 
     // Variables 
-    rclcpp::Publisher<foxglove_msgs::msg::CompressedVideo>::SharedPtr encoded_pub_;
+    rclcpp::Publisher<ffmpeg_image_transport_msgs::msg::FFMPEGPacket>::SharedPtr encoded_pub_;
     rclcpp::TimerBase::SharedPtr timer;
     std::shared_ptr<dai::Device> device;
     std::shared_ptr<dai::DataOutputQueue> encoded_queue;
