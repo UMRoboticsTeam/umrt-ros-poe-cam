@@ -21,11 +21,12 @@ dai::Pipeline createPipeline() {
     xlink_out_encoded->setStreamName("encoded_video");
     xlink_out_raw->setStreamName("raw_video");
 
+    color_cam->setBoardSocket(dai::CameraBoardSocket::CAM_A);
     color_cam->setFps(30);
     color_cam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-    color_cam->setBoardSocket(dai::CameraBoardSocket::CAM_A);
-    color_cam->setInterleaved(false);
+    color_cam->setInterleaved(true);    //  Check if ROS2 requires this
     color_cam->setColorOrder(dai::ColorCameraProperties::ColorOrder::BGR);
+    color_cam->setPreviewSize(640, 360);
 
     // Setting to 26 FPS will trigger error so set to 25, none the less try 30 FPS
     video_enc->setDefaultProfilePreset(color_cam->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
@@ -41,8 +42,8 @@ dai::Pipeline createPipeline() {
 
     //  Raw Video Output 
     //  Limit the Raw Video Output to 10 FPS to reduce bandwidth (only used for ArUco)
-    color_cam->video.link(xlink_out_raw->input);
-    xlink_out_raw->setFpsLimit(10);    
+    color_cam->preview.link(xlink_out_raw->input);
+    // xlink_out_raw->setFpsLimit(10);    
 
     return pipeline;
 }
@@ -54,12 +55,12 @@ class MobileNetPublisherNode : public rclcpp::Node {
 public:
     MobileNetPublisherNode() : Node("mobilenet_publisher_node") {
         encoded_pub_ = this->create_publisher<foxglove_msgs::msg::CompressedVideo>(
-                "encoded_video",
-                // Custom QoS for Best Effort
-                rclcpp::QoS(rclcpp::KeepLast(1))
-                        .best_effort()
-                        .durability_volatile());
-        
+            "encoded_video",
+            // Custom QoS for Best Effort
+            rclcpp::QoS(rclcpp::KeepLast(1))
+                    .best_effort()
+                    .durability_volatile());
+    
         raw_pub_ = this->create_publisher<sensor_msgs::msg::Image>(
             "raw_video",
             // Custom QoS for Best Effort
@@ -71,7 +72,12 @@ public:
         device = std::make_shared<dai::Device>(pipeline);
         RCLCPP_INFO(this->get_logger(), "Pipeline running: %s", device->isPipelineRunning() ? "yes" : "no");
 
-        encoded_queue = device->getOutputQueue("encoded_video", 30, false);
+        auto names = device->getOutputQueueNames();
+        for(const auto& name : names) {
+            RCLCPP_INFO(this->get_logger(), "Available Queue: %s", name.c_str());
+        }
+
+        encoded_queue = device->getOutputQueue("encoded_video", 5, false);
         raw_queue = device->getOutputQueue("raw_video", 1, false);
 
         encoded_thread_ = std::thread(&MobileNetPublisherNode::encodedLoop, this);
@@ -98,12 +104,12 @@ private:
 
     // Loop for the 10 FPS Raw stream (ArUco)
     void rawLoop() {
-        while (rclcpp::ok()) {
-            auto frame = raw_queue->get<dai::ImgFrame>();
-            if (frame) {
-                publishRawImage(frame);
+            while (rclcpp::ok()) {
+                auto frame = raw_queue->tryGet<dai::ImgFrame>(); 
+                if (frame) {
+                    publishRawImage(frame);
+                }
             }
-        }
     }
 
     /**
