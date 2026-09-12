@@ -102,11 +102,14 @@ def generate_launch_description():
         default_value=resourceBaseFolder,
         description='Path to the resources folder which contains the default blobs for the network')
 
-    mobilenet_node = launch_ros.actions.Node(
+     mobilenet_node = launch_ros.actions.Node(
         package='umrt-ros-poe-cam', 
         executable='mobilenet_node',
         namespace = 'rover/poe',
         output='screen',
+        respawn=True,
+        respawn_delay=5.0,
+        env={'DEPTHAI_BOOT_TIMEOUT': '10000', 'DEPTHAI_WATCHDOG_INITIAL_DELAY': '10000'},
         parameters=[{'tf_prefix': 'oak'},
                     {'camera_param_uri': camera_param_uri},
                     {'sync_nn': sync_nn},
