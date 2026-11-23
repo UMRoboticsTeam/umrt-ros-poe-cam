@@ -98,9 +98,12 @@ add_executable(${mobilenet_node_target}
 
 target_compile_features(${mobilenet_node_target} PUBLIC cxx_std_17)
 
-target_include_directories(${mobilenet_node_target} PUBLIC
+target_include_directories(${mobilenet_node_target} BEFORE PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        ${depthai_bridge_v3_INCLUDE_DIRS}
+        ${depthai_ros_msgs_v3_INCLUDE_DIRS}
+        ${depthai_v3_INCLUDE_DIRS}
 )
 
 target_compile_definitions(${mobilenet_node_target} PRIVATE 
