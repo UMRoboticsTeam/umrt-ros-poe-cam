@@ -56,7 +56,7 @@ private:
     /**
      * The Color Camera FPS output 
      */
-    static constexpr int CAMERA_FPS = 30;
+    static constexpr int CAMERA_FPS = 15;
 
     /**
      * The Depth Camera FPS output 
