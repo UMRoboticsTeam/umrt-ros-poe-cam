@@ -61,14 +61,24 @@ void MobileNetPublisherNode::SetupCameraPipeline(dai::Pipeline& pipeline) {
     video_enc_ = pipeline.create<dai::node::VideoEncoder>();
 
     //  VideoEncoder configurations
-    video_enc_->setDefaultProfilePreset(CAMERA_FPS, dai::VideoEncoderProperties::Profile::H264_MAIN);
+    video_enc_->setDefaultProfilePreset(CAMERA_FPS, dai::VideoEncoderProperties::Profile::H264_BASELINE);
+
+    // Disable B-frames to eliminate frame reordering delays
+    video_enc_->setNumBFrames(0);
+
+    //set I-frame interval (GOP size) to match FPS
+    video_enc_->setKeyframeFrequency(CAMERA_FPS);
+
+    //enforce constant bitrate (CBR)
+    video_enc_->setRateControlMode(dai::VideoEncoderProperties::RateControlMode::CBR);
+    video_enc_->setBitrateKbps(2000); //4000 Kbps (4 Mbps), a stable baseline for 1080p
 
     //  For Encoder Stream
     auto cam_out = color_cam_->requestOutput({1920, 1080}, dai::ImgFrame::Type::NV12, dai::ImgResizeMode::CROP, CAMERA_FPS);
     cam_out->link(video_enc_->input);
 
     //  The 30 here indicates the max size of the output queue
-    encoded_q_ = video_enc_->out.createOutputQueue(30, false);
+    encoded_q_ = video_enc_->out.createOutputQueue(2, false);
 }   //  SetupCameraPipeline()
 
 void MobileNetPublisherNode::SetupImuPipeline(dai::Pipeline& pipeline) {
@@ -78,7 +88,7 @@ void MobileNetPublisherNode::SetupImuPipeline(dai::Pipeline& pipeline) {
     imu_node_->enableIMUSensor({dai::IMUSensor::ACCELEROMETER_RAW, dai::IMUSensor::GYROSCOPE_RAW},  IMU_REPORT_RATE_Hz);
     imu_node_->setBatchReportThreshold(1);
     imu_node_->setMaxBatchReports(10);
-    
+
     //  The 8 here indicates the max size of the output queue
     imu_q_ = imu_node_->out.createOutputQueue(8, false);
 }   //  SetupImuPipeline()
@@ -118,7 +128,7 @@ void MobileNetPublisherNode::SetupVideoPublishers() {
         auto daiMsg = std::dynamic_pointer_cast<dai::EncodedFrame>(data);
         if (daiMsg) {
             foxglove_msgs::msg::CompressedVideo msg;
-            msg.timestamp = rclcpp::Time(std::chrono::duration_cast<std::chrono::nanoseconds>(daiMsg->getTimestamp().time_since_epoch()).count());
+            msg.timestamp = this->get_clock()->now();
             msg.frame_id = "oakd_camera";
             msg.format = "h264";
             msg.data.assign(daiMsg->getData().begin(), daiMsg->getData().end());
